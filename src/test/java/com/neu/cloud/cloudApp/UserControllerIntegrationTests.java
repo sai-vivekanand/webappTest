@@ -35,7 +35,7 @@ public class UserControllerIntegrationTests {
         // Create a user
         mockMvc.perform(post("/v1/user")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"test98@example.com\",\"password\":\"password\",\"first_name\":\"Test\",\"last_name\":\"User\"}"))
+                        .content("{\"username\":\"test@example.com\",\"password\":\"password\",\"first_name\":\"Test\",\"last_name\":\"User\"}"))
                 .andExpect(status().isCreated());
 
         // Validate account exists
