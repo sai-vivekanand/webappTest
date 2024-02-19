@@ -43,6 +43,10 @@ jobs:
 
       - name: Test with Maven
         run: mvn test
+
+      - name: Run Integration Tests
+      run: mvn test -Dtest=com.neu.cloud.cloudApp.UserControllerIntegrationTests
+      
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/cloudSchema
           SPRING_DATASOURCE_USERNAME: root
