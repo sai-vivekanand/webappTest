@@ -45,7 +45,7 @@ jobs:
         run: mvn test
 
       - name: Run Integration Tests
-      run: mvn test -Dtest=com.neu.cloud.cloudApp.UserControllerIntegrationTests
+        run: mvn test -Dtest=com.neu.cloud.cloudApp.UserControllerIntegrationTests
       
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/cloudSchema
