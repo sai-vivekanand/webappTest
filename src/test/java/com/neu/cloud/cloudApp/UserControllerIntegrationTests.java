@@ -40,9 +40,9 @@ public class UserControllerIntegrationTests {
 
         // Validate account exists
         mockMvc.perform(get("/v1/user/self")
-                        .header("Authorization", "Basic " + Base64Utils.encodeToString("test95@example.com:password".getBytes())))
+                        .header("Authorization", "Basic " + Base64Utils.encodeToString("test94@example.com:password".getBytes())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("test@example.com"));
+                .andExpect(jsonPath("$.username").value("test94@example.com"));
     }
 
     @Test
