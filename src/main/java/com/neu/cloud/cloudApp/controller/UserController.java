@@ -40,6 +40,13 @@ public class UserController {
 
 	@GetMapping("/v1/user/self")
 	public ResponseEntity<Map<String, Object>> getAuthenticatedUser(HttpServletRequest httpServletRequest) {
+		// Check if there's any payload in the GET request
+		if (httpServletRequest.getContentLengthLong() > 0 || httpServletRequest.getHeader("Transfer-Encoding") != null) {
+			Map<String, Object> resMap = new HashMap<>();
+			resMap.put("msg", "Bad request. GET request should not contain a payload.");
+			return new ResponseEntity<>(resMap, HttpStatusCode.valueOf(400)); // Assuming HttpStatusCode supports valueOf like HttpStatus
+		}
+
 		try {
 			// The AuthHandler is assumed to extract the authenticated user's details
 			User authUser = authHandler.getUser(httpServletRequest);
