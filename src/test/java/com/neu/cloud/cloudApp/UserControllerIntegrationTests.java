@@ -49,7 +49,7 @@ public class UserControllerIntegrationTests {
     public void testUpdateAndGetUser() throws Exception {
         // Update the user
         mockMvc.perform(put("/v1/user/self")
-                        .header("Authorization", "Basic " + Base64Utils.encodeToString("test@example.com:password".getBytes()))
+                        .header("Authorization", "Basic " + Base64Utils.encodeToString("test@example.com:password".getBytes())))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"first_name\":\"Updated\",\"last_name\":\"User\"}"))
                 .andExpect(status().isNoContent());
