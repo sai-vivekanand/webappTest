@@ -35,14 +35,14 @@ public class UserControllerIntegrationTests {
         // Create a user
         mockMvc.perform(post("/v1/user")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"test98@example.com\",\"password\":\"password\",\"first_name\":\"Test\",\"last_name\":\"User\"}"))
+                        .content("{\"username\":\"test14@example.com\",\"password\":\"password\",\"first_name\":\"Test\",\"last_name\":\"User\"}"))
                 .andExpect(status().isCreated());
 
         // Validate account exists
         mockMvc.perform(get("/v1/user/self")
-                        .header("Authorization", "Basic " + Base64Utils.encodeToString("test@example.com:password".getBytes())))
+                        .header("Authorization", "Basic " + Base64Utils.encodeToString("test14@example.com:password".getBytes())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("non@example.com"));
+                .andExpect(jsonPath("$.username").value("test15@example.com"));
     }
 
     @Test
