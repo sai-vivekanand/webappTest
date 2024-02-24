@@ -39,12 +39,10 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Build with Maven
-        run: mvn clean install
+        run: mvn -B package --file pom.xml
 
-      - name: Run Integration Tests
-        run: mvn verify -Dtest=com.neu.cloud.cloudApp.UserControllerIntegrationTests
-
-      
+      - name: Run tests
+        run: mvn -B test --file pom.xml
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/cloudSchema
           SPRING_DATASOURCE_USERNAME: root
