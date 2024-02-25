@@ -17,7 +17,7 @@ variable "source_image_family" {
 
 variable "artifact_path" {
   type    = string
-  default = " "
+  default = ""
 }
 
 variable "ssh_username" {
