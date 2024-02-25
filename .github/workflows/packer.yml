@@ -71,18 +71,11 @@ jobs:
 
       - name: Change to Packer directory and list files
         run: |
+          
+      - name: Build GCP Image with Packer
+        run: |
           cd packer
           ls -l  # This will list files in the current directory for debugging purposes
-
-      - name: Build GCP Image with Packer
-        run: |
-          packer init .
-          packer validate .
-          packer build -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl
-          working-directory: ./packer  # Ensure you're in the correct directory where your Packer file is
-
-      - name: Build GCP Image with Packer
-        run: |
           packer init .
           packer validate .
           packer build -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl
