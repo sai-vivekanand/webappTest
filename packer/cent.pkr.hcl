@@ -50,7 +50,7 @@ build {
 
   provisioner "file" {
     destination = "/opt/"
-    source      = "./../target/cloud-app-0.0.1-SNAPSHOT.jar"
+    source      = var.artifact_path
   }
 
   provisioner "file" {
