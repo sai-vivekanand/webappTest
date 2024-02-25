@@ -15,6 +15,10 @@ variable "source_image_family" {
   default = "centos-stream-8"
 }
 
+variable "artifact_path" {
+  type    = string
+}
+
 variable "ssh_username" {
   type    = string
   default = "gcpImageUser"
