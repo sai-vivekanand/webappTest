@@ -78,4 +78,4 @@ jobs:
           ls -l  # This will list files in the current directory for debugging purposes
           packer init .
           packer validate .
-          packer build -var 'project_id=csye6225csye' -var 'zone=us-east1-b' -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' cent.pkr.hcl
+          packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl
