@@ -3,9 +3,35 @@ name: GCP Image Creation
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
+  packer_validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+      
+      - name: Install Packer
+        run: |
+          sudo apt-get update && sudo apt-get install packer
+
+      - name: Packer Format Check
+        if: github.event_name == 'pull_request'
+        run: |
+          cd packer
+          packer fmt -check .
+
+      - name: Packer Validate
+        if: github.event_name == 'pull_request'
+        run: |
+          cd packer
+          packer validate .
+
   setup_mysql:
+    if: github.event_name == 'push'
+    needs: packer_validation
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -20,7 +46,6 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
     steps:
       - uses: actions/checkout@v2
 
@@ -47,11 +72,12 @@ jobs:
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: Mnblkjpoi@123
           GCP_PROJECT_ID: csye6225csye
-          GCP_ZONE: us-east1-a  # Example zone, adjust as needed
+          GCP_ZONE: us-east1-a
           SOURCE_IMAGE: projects/centos-cloud/global/images/family/centos-stream-8
-          MACHINE_TYPE: n1-standard-1  # Example machine type, adjust as needed
+          MACHINE_TYPE: n1-standard-1
 
   build_gcp_image:
+    if: github.event_name == 'push'
     needs: setup_mysql
     runs-on: ubuntu-latest
     steps:
@@ -78,9 +104,6 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install packer
 
-      - name: Change to Packer directory and list files
-        run: |
-          
       - name: Build GCP Image with Packer
         run: |
           cd packer
