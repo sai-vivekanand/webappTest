@@ -28,7 +28,9 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           cd packer
-          packer validate .
+          # Mock the artifact path variable if it is required for validation
+          touch dummy.jar
+          packer validate -var 'artifact_path=dummy.jar' .
 
   setup_mysql:
     if: github.event_name == 'push'
