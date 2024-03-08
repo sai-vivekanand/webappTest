@@ -1,2 +1,2 @@
 project_id = "csye6225csye"
-zone     = "us-east1-b"
+zone       = "us-east1-b"
