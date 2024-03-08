@@ -15,11 +15,6 @@ variable "source_image_family" {
   default = "centos-stream-8"
 }
 
-variable "artifact_path" {
-  type    = string
-  default = ""
-}
-
 variable "ssh_username" {
   type    = string
   default = "gcpImageUser"
@@ -48,14 +43,14 @@ build {
   sources = ["source.googlecompute.centos_stream"]
   provisioner "shell" {
     inline = [
-            "sudo mkdir -p /opt",
-            "sudo chown gcpImageUser:gcpImageUser /opt"
+      "sudo mkdir -p /opt",
+      "sudo chown gcpImageUser:gcpImageUser /opt"
     ]
   }
 
   provisioner "file" {
     destination = "/opt/"
-    source      = var.artifact_path
+    source      = "./../target/cloud-app-0.0.1-SNAPSHOT.jar"
   }
 
   provisioner "file" {
@@ -66,7 +61,7 @@ build {
   provisioner "shell" {
     script = "script.sh"
   }
-  provisioner "shell" {
+  /*provisioner "shell" {
     script = "mysql.sh"
-  }
+  } */
 }

@@ -16,11 +16,11 @@ echo Java Location
 java --version
 echo completed Java Installation
 
-sudo dnf install mysql-server -y
-sudo systemctl start mysqld
-sudo systemctl enable mysqld
+#sudo dnf install mysql-server -y
+#sudo systemctl start mysqld
+#sudo systemctl enable mysqld
 sleep 10
-sudo yum install -y expect
+#sudo yum install -y expect
 
 sudo chmod 770 /opt/cloud-app-0.0.1-SNAPSHOT.jar
 sudo cp /opt/webservice.service /etc/systemd/system
