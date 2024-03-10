@@ -4,6 +4,11 @@ variable "project_id" {
   default     = "csye6225csye"
 }
 
+variable "artifact_path" {
+  type    = string
+  default = "dummy.jar"
+}
+
 variable "zone" {
   description = "The zone"
   type        = string
