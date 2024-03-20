@@ -21,7 +21,6 @@ public class healthCheckController {
         this.dataSource = dataSource;
     }
 
-
     @GetMapping("/healthz")
     public ResponseEntity<Void> healthCheck(HttpServletRequest request) {
         // Check if there's a content-length header indicating a body in a GET request
