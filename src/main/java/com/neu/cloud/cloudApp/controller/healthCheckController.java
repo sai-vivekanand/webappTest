@@ -24,6 +24,7 @@ public class healthCheckController {
     @GetMapping("/healthz")
     public ResponseEntity<Void> healthCheck(HttpServletRequest request) {
         // Check if there's a content-length header indicating a body in a GET request
+        
         if ("GET".equals(request.getMethod()) && request.getContentLengthLong() > 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
