@@ -15,11 +15,6 @@ variable "source_image_family" {
   default = "centos-stream-8"
 }
 
-variable "artifact_path" {
-  type    = string
-  default = ""
-}
-
 variable "ssh_username" {
   type    = string
   default = "gcpImageUser"
@@ -49,7 +44,9 @@ build {
   provisioner "shell" {
     inline = [
       "sudo mkdir -p /opt",
-      "sudo chown gcpImageUser:gcpImageUser /opt"
+      "sudo chown gcpImageUser:gcpImageUser /opt",
+      "sudo mkdir -p /var/logs/cloud/",
+      "sudo chown gcpImageUser:gcpImageUser /var/logs/cloud/"
     ]
   }
 
@@ -65,6 +62,18 @@ build {
 
   provisioner "shell" {
     script = "script.sh"
+  }
+
+  provisioner "file" {
+    destination = "/tmp/config.yaml"
+    source      = "config.yaml"
+  }
+
+  provisioner "shell" {
+    inline = [
+      "sudo mv /tmp/config.yaml /etc/google-cloud-ops-agent/",
+      "sudo chown root:root /etc/google-cloud-ops-agent/config.yaml"
+    ]
   }
   /*provisioner "shell" {
     script = "mysql.sh"

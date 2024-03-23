@@ -1,4 +1,4 @@
-# Cloud App Project
+# Cloud App Assignment
 This Project is built using Java, Spring Boot and MySQL.
 
 ## Environment details

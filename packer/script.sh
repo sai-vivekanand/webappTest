@@ -15,13 +15,6 @@ source /etc/profile
 echo Java Location
 java --version
 echo completed Java Installation
-
-#sudo dnf install mysql-server -y
-#sudo systemctl start mysqld
-#sudo systemctl enable mysqld
-sleep 10
-#sudo yum install -y expect
-
 sudo chmod 770 /opt/cloud-app-0.0.1-SNAPSHOT.jar
 sudo cp /opt/webservice.service /etc/systemd/system
 sudo chmod 770 /etc/systemd/system/webservice.service
@@ -29,6 +22,16 @@ sudo systemctl start webservice.service
 sudo systemctl enable webservice.service
 sudo systemctl restart webservice.service
 sudo systemctl status webservice.service
+
+curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
+sudo bash add-google-cloud-ops-agent-repo.sh --also-install
+
+#sudo dnf install mysql-server -y
+#sudo systemctl start mysqld
+#sudo systemctl enable mysqld
+sleep 10
+#sudo yum install -y expect
+sudo systemctl enable google-cloud-ops-agent
 sudo groupadd -f csye6225
 sudo useradd -r -g csye6225 -s /usr/sbin/nologin csye6225 || true
 
