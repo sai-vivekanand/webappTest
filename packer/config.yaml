@@ -1,0 +1,22 @@
+logging:
+  receivers:
+    file-logs-receiver:
+      type: files
+      include_paths:
+        - /var/logs/cloud/application.json.log
+      record_log_file_path: true
+  processors:
+    json-log-parser:
+      type: parse_json
+      time_key: time
+      time_format: "%Y-%m-%dT%H:%M:%S.%NZ"
+    pick_severity:
+      type: modify_fields
+      fields:
+        severity:
+          move_from: jsonPayload.level
+  service:
+    pipelines:
+      default_pipeline:
+        receivers: [file-logs-receiver]
+        processors: [json-log-parser, pick_severity]

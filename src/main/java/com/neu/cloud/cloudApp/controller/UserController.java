@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.neu.cloud.cloudApp.Utils.AuthHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,8 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestController
 public class UserController {
 
+	private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
 	@Autowired
 	private UserService userService;
 
@@ -30,6 +34,9 @@ public class UserController {
 	@PostMapping("/v1/user")
 	public ResponseEntity<Map<String, Object>> createUser(@RequestBody(required = false) Map<String, String> requMap) {
 		try {
+			logger.info("This is a Post v1/user/self structured log message to check INFO");
+			logger.error("This is a Post v1/user/self structured log message to check ERROR");
+			logger.debug("This is a Post v1/user/self structured log message to check DEBUG");
 			return userService.save(requMap);
 		} catch (Exception e) {
 			Map<String, Object> resMap = new HashMap<>();
@@ -46,6 +53,9 @@ public class UserController {
 			if (authUser == null) {
 				Map<String, Object> resMap = new HashMap<>();
 				resMap.put("msg", "Unauthorized access. Please provide valid credentials.");
+				logger.info("This is a Get v1/user/self structured log message to check INFO");
+				logger.error("This is a Gut v1/user/self structured log message to check ERROR");
+				logger.debug("This is a Gut v1/user/self structured log message to check DEBUG");
 				return new ResponseEntity<>(resMap, HttpStatusCode.valueOf(401));
 			}
 
@@ -67,6 +77,9 @@ public class UserController {
 			if (authUser == null) {
 				Map<String, Object> resMap = new HashMap<>();
 				resMap.put("msg", "Unauthorized access. Please provide valid credentials.");
+				logger.info("This is a Put v1/user/self structured log message to check INFO");
+				logger.error("This is a Put v1/user/self structured log message to check ERROR");
+				logger.debug("This is a Put v1/user/self structured log message to check DEBUG");
 				return new ResponseEntity<>(resMap, HttpStatusCode.valueOf(401));
 			}
 			return userService.updateUserById(String.valueOf(authUser.getId()), requMap, httpServletRequest);
