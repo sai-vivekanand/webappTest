@@ -10,6 +10,11 @@ variable "zone" {
   default     = "us-east1-b"
 }
 
+variable "artifact_path" {
+  type    = string
+  default = ""
+}
+
 variable "source_image_family" {
   type    = string
   default = "centos-stream-8"
