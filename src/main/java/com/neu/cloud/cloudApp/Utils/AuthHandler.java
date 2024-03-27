@@ -2,6 +2,7 @@ package com.neu.cloud.cloudApp.Utils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Optional;
 
 import com.neu.cloud.cloudApp.repository.UserRepository;
 import org.mindrot.jbcrypt.BCrypt;
@@ -29,19 +30,10 @@ public class AuthHandler {
 				// credentials = username:password
 				final String[] values = credentials.split(":", 2);
 
-				User user = userRepository.findByUsername(values[0]);
-				if (user != null) {
-					if (verifyHash(values[1], user.getPassword())) {
-						return user;
-					}
+				Optional<User> userOptional = userRepository.findByUsername(values[0]);
+				if (userOptional.isPresent() && verifyHash(values[1], userOptional.get().getPassword())) {
+					return userOptional.get();
 				}
-
-//				Optional<User> userOptional = userRepository.findByUsername(values[0]);
-//				if (userOptional.isPresent()) {
-//					if (verifyHash(values[1], userOptional.get().getPassword())) {
-//						return userOptional.get();
-//					}
-//				}
 			}
 			return null;
 
@@ -57,5 +49,4 @@ public class AuthHandler {
 	public boolean verifyHash(String password, String hash) {
 		return BCrypt.checkpw(password, hash);
 	}
-
 }

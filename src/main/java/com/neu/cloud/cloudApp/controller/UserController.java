@@ -90,5 +90,29 @@ public class UserController {
 		}
 	}
 
+	@GetMapping("/v1/user/self/verify/")
+	public ResponseEntity<Map<String, Object>> verifyUser(HttpServletRequest httpServletRequest) {
+		try {
+			// The AuthHandler is assumed to extract the authenticated user's details
+			User authUser = authHandler.getUser(httpServletRequest);
+			if (authUser == null) {
+				Map<String, Object> resMap = new HashMap<>();
+				resMap.put("msg", "Unauthorized access. Please provide valid credentials.");
+				logger.info("This is a Get v1/user/self structured log message to check INFO");
+				logger.error("This is a Gut v1/user/self structured log message to check ERROR");
+				logger.debug("This is a Gut v1/user/self structured log message to check DEBUG");
+				return new ResponseEntity<>(resMap, HttpStatusCode.valueOf(401));
+			}
+
+			// Use the authenticated user's ID to fetch the user details
+			return userService.fetchById(String.valueOf(authUser.getId()), httpServletRequest);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			Map<String, Object> resMap = new HashMap<>();
+			resMap.put("msg", "An error occurred while fetching user data.");
+			return new ResponseEntity<>(resMap, HttpStatusCode.valueOf(400));
+		}
+	}
+
 
 }
