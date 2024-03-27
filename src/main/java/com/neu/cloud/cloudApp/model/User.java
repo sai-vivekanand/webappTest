@@ -1,13 +1,9 @@
 package com.neu.cloud.cloudApp.model;
 
 import java.util.Date;
+import java.util.UUID;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,9 +17,14 @@ import lombok.Setter;
 @Table(name = "user")
 public class User {
 
+	//@Id
+	//@GeneratedValue(strategy = GenerationType.IDENTITY)
+	//private int id;
+
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+	@GeneratedValue(generator = "UUID")
+	@Column(columnDefinition = "BINARY(16)")
+	private UUID uuid;
 
 	@Column(name = "first_name")
 	private String firstName;
@@ -43,12 +44,15 @@ public class User {
 	@Column(name = "account_updated")
 	private Date accountUpdated;
 
-	public int getId() {
-		return id;
+	@Column(name = "is_verified")
+	private boolean isVerified;
+
+	public UUID getId() {
+		return uuid;
 	}
 
-	public void setId(int id) {
-		this.id = id;
+	public void setId(UUID uuid) {
+		this.uuid = uuid;
 	}
 
 	public String getFirstName() {
@@ -101,9 +105,13 @@ public class User {
 
 	@Override
 	public String toString() {
-		return "User [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", username=" + username
+		return "User [id=" + uuid + ", firstName=" + firstName + ", lastName=" + lastName + ", username=" + username
 				+ ", password=" + password + ", accountCreated=" + accountCreated + ", accountUpdated=" + accountUpdated
 				+ "]";
 	}
 
+	@PrePersist
+	private void ensureId() {
+		this.setId(UUID.randomUUID());
+	}
 }
