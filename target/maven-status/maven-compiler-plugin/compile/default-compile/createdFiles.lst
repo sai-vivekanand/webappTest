@@ -1,9 +1,12 @@
-com/neu/cloud/cloudApp/Utils/AuthHandler.class
 com/neu/cloud/cloudApp/controller/GlobalExceptionHandler.class
 com/neu/cloud/cloudApp/repository/UserRepository.class
 com/neu/cloud/cloudApp/service/UserService.class
+com/neu/cloud/cloudApp/controller/healthCheckController.class
+com/neu/cloud/cloudApp/service/PubSubConfig.class
+com/neu/cloud/cloudApp/controller/UserController.class
+com/neu/cloud/cloudApp/repository/VerificationInfoRepository.class
+com/neu/cloud/cloudApp/Utils/AuthHandler.class
 com/neu/cloud/cloudApp/CloudAppApplication.class
 com/neu/cloud/cloudApp/Utils/Utils.class
-com/neu/cloud/cloudApp/controller/healthCheckController.class
-com/neu/cloud/cloudApp/controller/UserController.class
+com/neu/cloud/cloudApp/model/VerificationInfo.class
 com/neu/cloud/cloudApp/model/User.class
