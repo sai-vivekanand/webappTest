@@ -11,5 +11,5 @@ import com.neu.cloud.cloudApp.model.VerificationInfo;
 @Repository
 public interface VerificationInfoRepository extends JpaRepository<VerificationInfo, UUID> {
 
-    //Optional<VerificationInfo> findByUserUuid(UUID userUuid);
+   // Optional<VerificationInfo> findByUserUuid(UUID userUuid);
 }
