@@ -47,6 +47,14 @@ public class User {
 	@Column(name = "is_verified")
 	private boolean isVerified;
 
+	public boolean isVerified() {
+		return isVerified;
+	}
+
+	public void setVerified(boolean verified) {
+		isVerified = verified;
+	}
+
 	public UUID getId() {
 		return uuid;
 	}
