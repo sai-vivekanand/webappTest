@@ -12,7 +12,7 @@
 
     <!-- Rolling File Appender for JSON formatted logs -->
     <appender name="JSON_FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/logs/cloud/application.json.log</file>
+        <file>logs/cloud/application.json.log</file>
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
                 <timestamp>

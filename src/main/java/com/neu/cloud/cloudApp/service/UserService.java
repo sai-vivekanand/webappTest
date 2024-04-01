@@ -67,7 +67,7 @@ public class UserService {
 
 		User user = new User();
 		VerificationInfo verificationInfo = new VerificationInfo();
-		user.setId(UUID.randomUUID());
+		//user.setId(UUID.randomUUID());
 		verificationInfo.setId(user.getId());
 		verificationInfo.setUsername(username);
 		user.setFirstName(firstName);

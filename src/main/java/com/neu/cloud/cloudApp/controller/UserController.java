@@ -14,6 +14,7 @@ import com.neu.cloud.cloudApp.repository.VerificationInfoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -158,7 +159,7 @@ public class UserController {
 		}
 	}*/
 
-	@GetMapping("/v1/user/verify_email/{uuid}")
+	/*@GetMapping("/v1/user/verify_email/{uuid}")
 	public ResponseEntity<Map<String, Object>> verifyUserEmail(@PathVariable String uuidString) {
 		try {
 			// Convert String to UUID
@@ -195,7 +196,44 @@ public class UserController {
 			logger.error("Error verifying user: " + e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Error during verification."));
 		}
+	}*/
+
+	@GetMapping("/v1/user/verify_email")
+	public ResponseEntity<Map<String, Object>> verifyUserEmail(@RequestParam("token") String uuidString) {
+		System.out.println("uuid" + uuidString);
+		try {
+			// Convert String to UUID
+			UUID uuid = UUID.fromString(uuidString);
+			Optional<VerificationInfo> verificationInfoOpt = verificationInfoRepository.findById(uuid);
+
+			if (!verificationInfoOpt.isPresent()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Verification token not found."));
+			}
+			VerificationInfo verificationInfo = verificationInfoOpt.get();
+			long diffInMinutes = Duration.between(verificationInfo.getEmailExpTimeTime().toInstant(), Instant.now()).toMinutes();
+
+			if (diffInMinutes > 2) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Verification link expired."));
+			}
+			// Find the user by username obtained from verification info
+			Optional<User> userOptional = userRepository.findByUsername(verificationInfo.getUsername());
+			if (!userOptional.isPresent()) {
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found."));
+			}
+
+			User user = userOptional.get();
+			user.setVerified(true);
+			userRepository.save(user);
+
+			return ResponseEntity.ok(Map.of("message", "User verified successfully."));
+		} catch (IllegalArgumentException iae) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Invalid UUID format."));
+		} catch (Exception e) {
+			logger.error("Error verifying user: " + e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Error during verification."));
+		}
 	}
+
 
 
 }
