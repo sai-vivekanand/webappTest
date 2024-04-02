@@ -69,6 +69,9 @@ public class UserController {
 				logger.debug("This is a Gut v1/user/self structured log message to check DEBUG");
 				return new ResponseEntity<>(resMap, HttpStatusCode.valueOf(401));
 			}
+			if (!authUser.isVerified()) {
+            			return new ResponseEntity<>(Map.of("message", "Access forbidden. User is not verified."), HttpStatus.FORBIDDEN);
+        		}
 
 			// Use the authenticated user's ID to fetch the user details
 			return userService.fetchById(String.valueOf(authUser.getId()), httpServletRequest);
@@ -93,6 +96,9 @@ public class UserController {
 				logger.debug("This is a Put v1/user/self structured log message to check DEBUG");
 				return new ResponseEntity<>(resMap, HttpStatusCode.valueOf(401));
 			}
+			if (!authUser.isVerified()) {
+            			return new ResponseEntity<>(Map.of("message", "Access forbidden. User is not verified."), HttpStatus.FORBIDDEN);
+        		}
 			return userService.updateUserById(String.valueOf(authUser.getId()), requMap, httpServletRequest);
 		} catch (Exception e) {
 			Map<String, Object> resMap = new HashMap<>();
