@@ -1,125 +1,44 @@
-name: GCP Image Creation
+# This file contains the GitHub Actions workflow for creating a new GCP VM image 
+# using Packer when changes are pushed to the main branch.
+
+name: Create GCP Image
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
-
+    
 jobs:
-  packer_validation:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v2
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-      
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
-      
-      - name: Install Packer
-        run: |
-          sudo apt-get update && sudo apt-get install packer
-
-      - name: Packer Format Check
-        if: github.event_name == 'pull_request'
-        run: |
-          cd packer
-          packer init .
-          packer fmt -check .
-
-      - name: Packer Validate
-        if: github.event_name == 'pull_request'
-        run: |
-          cd packer
-          # Mock the artifact path variable if it is required for validation
-          #touch dummy.jar
-          packer validate -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl
-
-  setup_mysql:
-    if: github.event_name == 'push'
-    needs: packer_validation
-    runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: Mnblkjpoi@123
-          MYSQL_DATABASE: cloudSchema
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost -u root -pMnblkjpoi@123"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'adopt'
-
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Build with Maven
-        run: mvn -B package --file pom.xml
-
-      - name: Run tests
-        run: mvn -B test --file pom.xml
-        env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/cloudSchema
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: Mnblkjpoi@123
-          GCP_PROJECT_ID: csye6225csye
-          GCP_ZONE: us-east1-a
-          SOURCE_IMAGE: projects/centos-cloud/global/images/family/centos-stream-8
-          MACHINE_TYPE: n1-standard-1
 
   build_gcp_image:
-    if: github.event_name == 'push'
-    needs: setup_mysql
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v2
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'adopt'
+    - uses: actions/checkout@v2
+    
+    - name: Download application artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: application-artifact
+        
+    - name: Set up Google Cloud SDK 
+      uses: google-github-actions/setup-gcloud@v0.2.0
+      with:
+        service_account_key: ${{ secrets.CSYE6225CSYE }}
+        project_id: csye6225csye
+        export_default_credentials: true
+        
+    - name: Create Instance Template
+      run: |  
+        cd packer
+        packer init .
+        packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl
+        
+    - name: Configure MIG to use new template
+      run: gcloud compute instance-groups managed set-instance-template INSTANCE_GROUP_NAME --template=INSTANCE_TEMPLATE_NAME
+        
+    - name: Re-create MIG instances
+      run: gcloud compute instance-groups managed recreate-instances INSTANCE_GROUP_NAME
       
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
-      
-      - name: Set up Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0.2.0
-        with:
-          service_account_key: ${{ secrets.CSYE6225CSYE }}
-          project_id: csye6225csye
-          export_default_credentials: true
-
-      - name: Install Packer
-        run: |
-          sudo apt-get update && sudo apt-get install packer
-
-      - name: Build GCP Image with Packer
-        run: |
-          cd packer
-          ls -l  # This will list files in the current directory for debugging purposes
-          packer init .
-          packer validate .
-          packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl
+    - name: Wait for instance refresh
+      run: |
+        gcloud compute instance-groups managed wait-until --stable INSTANCE_GROUP_NAME
