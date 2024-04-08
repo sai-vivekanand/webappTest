@@ -26,19 +26,37 @@ jobs:
 
   packer_validation:
     runs-on: ubuntu-latest
-    
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Install Packer
-      run: |
-        sudo apt-get update && sudo apt-get install packer
-        
-    - name: Validate Packer Template
-      run: |
-        cd packer
-        packer init .
-        packer validate cent.pkr.hcl
+      - name: Checkout the repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+      
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+      
+      - name: Install Packer
+        run: |
+          sudo apt-get update && sudo apt-get install packer
+
+      - name: Packer Format Check
+        if: github.event_name == 'pull_request'
+        run: |
+          cd packer
+          packer init .
+          packer fmt -check .
+
+      - name: Packer Validate
+        if: github.event_name == 'pull_request'
+        run: |
+          cd packer
+          # Mock the artifact path variable if it is required for validation
+          #touch dummy.jar
+          packer validate -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl
         
   build_application:
     runs-on: ubuntu-latest
