@@ -22,7 +22,7 @@ jobs:
         distribution: 'adopt'
         
     - name: Run unit tests
-      run: mvn clean test
+      run: mvn test
 
   packer_validation:
     runs-on: ubuntu-latest
