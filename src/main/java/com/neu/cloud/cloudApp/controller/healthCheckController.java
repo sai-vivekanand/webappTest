@@ -28,9 +28,9 @@ public class healthCheckController {
     @GetMapping("/healthz")
     public ResponseEntity<Void> healthCheck(HttpServletRequest request) {
         // Check if there's a content-length header indicating a body in a GET request
-        logger.info("This is a healthz structured log message to check INFO");
-        logger.error("This is a healthz structured log message to check ERROR");
-        logger.debug("This is a healthz structured log message to check DEBUG");
+        logger.info("This is NEW a healthz structured log message to check INFO");
+        logger.error("This is NEW a healthz structured log message to check ERROR");
+        logger.debug("This is NEW a healthz structured log message to check DEBUG");
         if ("GET".equals(request.getMethod()) && request.getContentLengthLong() > 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
