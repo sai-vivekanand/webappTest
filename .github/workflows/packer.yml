@@ -70,8 +70,8 @@ jobs:
         cd packer
         packer init .
         packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl > image_packer.txt
-        image_id=$(grep 'created image success' image_packer.txt | awk '{print $3}')
-        echo "::set-output name=image_id::$image_id"
+        image_name=$(grep 'Image creation complete' image_packer.txt | awk '{print $4}')
+        echo "::set-output name=image_name::$image_name"
         
       env:
         # NEW_IMAGE_NAME: webapp-image-${{ github.sha }}
@@ -94,7 +94,7 @@ jobs:
           --tags=${{env.TAGS}} \
           --region=${{env.REGION}} \
           --machine-type=${{env.MACHINE_TYPE}} \
-          --image=projects/${{env.PROJECT_ID}}/global/images/${{steps.image_build.outputs.image_id}}
+          --image=projects/${{env.PROJECT_ID}}/global/images/${{steps.image_build.outputs.image_name}} \
           --description= 'new template creation' \
           --boot-disk-kms-key=${{secrets.KMS_KEY_SELF_LINK}} \
           --metadata={ startup-script= <<-EOF
@@ -123,11 +123,12 @@ jobs:
       id: update_managed_instance_group
       run: |
           gcloud compute instance-groups managed rolling-action start-update ${{env.INSTANCE_GROUP_NAME}} \
-          --version=template=${NEW_INSTANCE_TEMPLATE_LINK} --region=${REGION}
+          --version=template=https://compute.googleapis.com/compute/v1/projects/csye6225csye/global/instanceTemplates/webapp-template-dev \
+          --region=${{env.REGION}}
     - name: Wait for Managed Instance Group update
       id: wait_until_managed_instance_group_is_stable
       run: |
           gcloud compute instance-groups managed wait-until ${{ steps.update_managed_instance_group.outputs.MANAGED_INSTANCE_GROUP_NAME }} \
           --version-target-reached \
-          --region=${REGION}
+          --region=${{env.REGION}}
           echo "Managed Instance group is stable"
