@@ -8,6 +8,16 @@ env:
   PROJECT_ID: csye6225csye
   INSTANCE_GROUP_NAME: webapp-group-manager
   REGION: us-east1
+  MACHINE_TYPE: e2-medium
+  SOURCE_IMAGE_FAMILY: centos-stream-8
+  SSH_USERNAME: gcpImageUser
+  IMAGE_FAMILY: java-app-fam
+  ZONE: us-east1-c
+  NETWORK: vpc-dev
+  SUBNET: webapp-dev
+  LABELS: environment=dev,team=cloud
+  TAGS: webapp-server
+  SCOPES: https://www.googleapis.com/auth/sqlservice.admin,https://www.googleapis.com/auth/cloud-platform
 
 jobs:
   build_gcp_image:
@@ -33,11 +43,41 @@ jobs:
         project_id: ${{ env.PROJECT_ID }}
         export_default_credentials: true
 
+    - name: Create Timestamp
+      id: create_timestamp
+      run: |
+        TIMESTAMP=$(date +%s)
+        echo "Timestamp: $TIMESTAMP"
+        echo "::set-output name=TIMESTAMP::$TIMESTAMP"
+
+    - name: Create Image Family Name
+      id: create_image_family
+      run: |
+        IMAGE_FAMILY="java-app-fam"
+        echo "Image Family Name: $IMAGE_FAMILY"
+        echo "::set-output name=IMAGE_FAMILY::$IMAGE_FAMILY"
+
+    - name: Create Image Name
+      id: create_image_name
+      run: |
+        IMAGE_NAME="gcp-${{ steps.create_timestamp.outputs.TIMESTAMP }}"
+        echo "Image Name: $IMAGE_NAME"
+        echo "::set-output name=IMAGE_NAME::$IMAGE_NAME"
+
     - name: Build machine image with Packer
       run: |
         cd packer
         packer init .
         packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=${{ env.PROJECT_ID }}' -var 'zone=us-east1-b' cent.pkr.hcl
+        packer build \
+          -var 'project_id=${{ env.PROJECT_ID }}' \
+          -var 'zone=${{ env.ZONE }}' \
+          -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' \
+          -var 'source_image_family=${{ env.SOURCE_IMAGE_FAMILY }}' \
+          -var 'ssh_username=${{ env.SSH_USERNAME }}' \
+          -var 'image_name=${{ steps.create_image_name.outputs.IMAGE_NAME }}' \
+          -var 'image_family=${{ env.IMAGE_FAMILY }}' \
+          .
       env:
         NEW_IMAGE_NAME: webapp-image-${{ github.sha }}
         DB_HOSTNAME: ${{ secrets.DB_HOSTNAME }}
@@ -45,18 +85,44 @@ jobs:
         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     - name: Create new Instance Template
+      id: create_instance_template
       run: |
-        gcloud compute instance-templates create webapp-template-${{ github.sha }} \
-          --image=${{ env.NEW_IMAGE_NAME }} \
-          --region=${{ env.REGION }}
+          NEW_INSTANCE_TEMPLATE_NAME="webapp-template-dev-${{ steps.create_timestamp.outputs.TIMESTAMP }}"
+          OLD_INSTANCE_TEMPLATE_NAME=$(gcloud compute instance-templates list --sort-by=creationTimestamp --limit=1 --format="value(name)")
+          REGION=${{ env.REGION }}
+          MACHINE_TYPE=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.machineType)")
+          NETWORK=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.networkInterfaces.network)")
+          SUBNET=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.networkInterfaces.subnetwork)")
+          NEW_IMAGE_LINK=$(gcloud compute images describe ${{ steps.create_image_name.outputs.IMAGE_NAME }} --format="value(selfLink)")
+          BOOT_DISK_KMS_KEY=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.disks.diskEncryptionKey.kmsKeyName)")
+          BOOT_DISK_SIZE=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.disks.initializeParams.diskSizeGb)")
+          BOOT_DISK_TYPE=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.disks.initializeParams.diskType)")
+          LABELS=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.labels)")
+          TAGS=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.tags.items)")
+          METADATA=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.metadata.items.value)")
+          SERVICE_ACCOUNT=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.serviceAccounts.email)")
+          SCOPES=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.serviceAccounts.scopes)")
+          SCOPES=$(echo "$SCOPES" | sed "s/\[\|\]//g")
+          SCOPES=$(echo "$SCOPES" | sed "s/ *', *'/,/g")
+          SCOPES=$(echo "$SCOPES" | sed "s/^'//;s/'$//")
+          echo "Initialised New Instance Template Variables" 
 
     - name: Update Managed Instance Group
+      id: update_managed_instance_group
       run: |
-        gcloud compute instance-groups managed rolling-action start-update ${{ env.INSTANCE_GROUP_NAME }} \
-          --version template=webapp-template-${{ github.sha }} \
-          --region=${{ env.REGION }}
+          REGION=${{ env.REGION }}
+          NEW_INSTANCE_TEMPLATE_LINK=$(gcloud compute instance-templates describe ${{ steps.create_instance_template.outputs.NEW_INSTANCE_TEMPLATE_NAME }} --region=${REGION} --format="value(selfLink)")
+          MANAGED_INSTANCE_GROUP_NAME=$(gcloud compute instance-groups managed list --sort-by=creationTimestamp --limit=1 --format="value(name)")
+          echo "Initialised New Managed Instance Group Variables"
+          gcloud compute instance-groups managed rolling-action start-update ${MANAGED_INSTANCE_GROUP_NAME} --version template=${NEW_INSTANCE_TEMPLATE_LINK} --region=${REGION}
+          echo "Managed Instance Group Updated"
+          echo "::set-output name=MANAGED_INSTANCE_GROUP_NAME::$MANAGED_INSTANCE_GROUP_NAME"
 
     - name: Wait for Managed Instance Group update
+      id: wait_until_managed_instance_group_is_stable
       run: |
-        gcloud compute instance-groups managed wait-until-stable ${{ env.INSTANCE_GROUP_NAME }} \
-          --region=${{ env.REGION }}
+          REGION=${{ env.REGION }}
+          gcloud compute instance-groups managed wait-until ${{ steps.update_managed_instance_group.outputs.MANAGED_INSTANCE_GROUP_NAME }} \
+          --version-target-reached \
+          --region=${REGION}
+          echo "Managed Instance group is stable"
