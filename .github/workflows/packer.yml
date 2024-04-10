@@ -95,7 +95,7 @@ jobs:
           --region=${{env.REGION}} \
           --machine-type=${{env.MACHINE_TYPE}} \
           --image=projects/${{env.PROJECT_ID}}/global/images/${{steps.image_build.outputs.image_name}} \
-          --description= 'new template creation' \
+          --description='new template creation' \
           --boot-disk-kms-key=${{secrets.KMS_KEY_SELF_LINK}} \
           --metadata='startup-script= <<-EOF
               #!/bin/bash
