@@ -30,6 +30,11 @@ variable "image_family" {
   default = "java-app-fam"
 }
 
+variable "image_name" {
+  type    = string
+  default = ""
+}
+
 locals {
   timestamp = regex_replace(timestamp(), "[- TZ:]", "")
 }
