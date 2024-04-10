@@ -84,7 +84,7 @@ jobs:
       run: |
           echo "Image created is: ${{steps.image_build.outputs.image_id}}"
           gcloud compute instance-templates create ${{secrets.NEW_TEMPLATE_NAME}} \
-          --project =${{env.PROJECT_ID}} \
+          --project=${{env.PROJECT_ID}} \
           --instance-template-region=${{env.REGION}} \          
           --network=${{env.NETWORK}} \
           --subnet=${{env.SUBNET}} \
@@ -97,7 +97,7 @@ jobs:
           --image=projects/${{env.PROJECT_ID}}/global/images/${{steps.image_build.outputs.image_name}} \
           --description= 'new template creation' \
           --boot-disk-kms-key=${{secrets.KMS_KEY_SELF_LINK}} \
-          --metadata={ startup-script= <<-EOF
+          --metadata='startup-script= <<-EOF
               #!/bin/bash
 
               set -e
@@ -112,7 +112,7 @@ jobs:
               EOF2
 
               touch /var/run/startup-script-completed
-              EOF }
+              EOF' \
           --service-account=${{secrets.GCP_SERVICE_ACCOUNT_EMAIL}} \
           --scopes=${{env.SCOPES}}
           
@@ -123,12 +123,12 @@ jobs:
       id: update_managed_instance_group
       run: |
           gcloud compute instance-groups managed rolling-action start-update ${{env.INSTANCE_GROUP_NAME}} \
-          --version=template=https://compute.googleapis.com/compute/v1/projects/csye6225csye/global/instanceTemplates/webapp-template-dev \
+          --version=template=https://compute.googleapis.com/compute/v1/projects/csye6225csye/global/instanceTemplates/${{secrets.NEW_TEMPLATE_NAME}} \
           --region=${{env.REGION}}
     - name: Wait for Managed Instance Group update
       id: wait_until_managed_instance_group_is_stable
       run: |
-          gcloud compute instance-groups managed wait-until ${{ steps.update_managed_instance_group.outputs.MANAGED_INSTANCE_GROUP_NAME }} \
+          gcloud compute instance-groups managed wait-until ${{env.INSTANCE_GROUP_NAME}} \
           --version-target-reached \
           --region=${{env.REGION}}
           echo "Managed Instance group is stable"
