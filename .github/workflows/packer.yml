@@ -70,8 +70,8 @@ jobs:
         cd packer
         packer init .
         packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl ./packer | tee image_packer.txt
-        imageId = $(grep 'created image success' image_packer.txt | awk '{print $3}')
-        echo "::set-output name=imageId::imageId"
+        image_id = $(grep 'created image success' image_packer.txt | awk '{print $3}')
+        echo "::set-output name=image_id::image_id"
         
       env:
         # NEW_IMAGE_NAME: webapp-image-${{ github.sha }}
@@ -82,7 +82,7 @@ jobs:
     - name: Create new Instance Template
       id: create_instance_template
       run: |
-          echo "Image created is: ${{steps.image_build.outputs.imageId}}"
+          echo "Image created is: ${{steps.image_build.outputs.image_id}}"
           gcloud compute instance-templates create ${{secrets.NEW_TEMPLATE_NAME}} \
           --project =${{env.PROJECT_ID}} \
           --instance-template-region=${{env.REGION}} \          
@@ -94,7 +94,7 @@ jobs:
           --tags=${{env.TAGS}} \
           --region=${{env.REGION}} \
           --machine-type=${{env.MACHINE_TYPE}} \
-          --image=projects/${{env.PROJECT_ID}}/global/images/${{steps.image_build.outputs.imageId}}
+          --image=projects/${{env.PROJECT_ID}}/global/images/${{steps.image_build.outputs.image_id}}
           --description= 'new template creation' \
           --boot-disk-kms-key=${{secrets.KMS_KEY_SELF_LINK}} \
           --metadata={ startup-script= <<-EOF
