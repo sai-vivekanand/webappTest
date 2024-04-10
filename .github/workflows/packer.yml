@@ -1,17 +1,18 @@
-# This file contains the GitHub Actions workflow for creating a new GCP VM image 
-# using Packer when changes are pushed to the main branch.
-
 name: Create GCP Image
 
 on:
   push:
     branches: [main]
-    
-jobs:
 
+env:
+  PROJECT_ID: csye6225csye
+  INSTANCE_GROUP_NAME: webapp-group-manager
+  REGION: us-east1
+
+jobs:
   build_gcp_image:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout the repository
       uses: actions/checkout@v2
@@ -19,38 +20,43 @@ jobs:
     - name: Set up JDK 17
       uses: actions/setup-java@v2
       with:
-          java-version: '17'
-          distribution: 'adopt'
-      
+        java-version: '17'
+        distribution: 'adopt'
+
     - name: Build with Maven
       run: mvn clean package -DskipTests
-        
-    - name: Set up Google Cloud SDK 
+
+    - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v0.2.0
       with:
         service_account_key: ${{ secrets.CSYE6225CSYE }}
-        project_id: csye6225csye
+        project_id: ${{ env.PROJECT_ID }}
         export_default_credentials: true
-        
-    - name: Create Instance Template
-      run: |  
+
+    - name: Build machine image with Packer
+      run: |
         cd packer
         packer init .
-        packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl
-        
+        packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=${{ env.PROJECT_ID }}' -var 'zone=us-east1-b' cent.pkr.hcl
+      env:
+        NEW_IMAGE_NAME: webapp-image-${{ github.sha }}
+        DB_HOSTNAME: ${{ secrets.DB_HOSTNAME }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
     - name: Create new Instance Template
       run: |
-        gcloud compute instance-templates create webapp-template-new \
-          --source-instance-template webapp-template-${var.environment} \
-          --region ${{ secrets.GCP_REGION }}
+        gcloud compute instance-templates create webapp-template-${{ github.sha }} \
+          --image=${{ env.NEW_IMAGE_NAME }} \
+          --region=${{ env.REGION }}
 
     - name: Update Managed Instance Group
       run: |
-        gcloud compute instance-groups managed rolling-action start-update webapp-group-manager \
-          --version template=webapp-template-new \
-          --region ${{ secrets.GCP_REGION }}
+        gcloud compute instance-groups managed rolling-action start-update ${{ env.INSTANCE_GROUP_NAME }} \
+          --version template=webapp-template-${{ github.sha }} \
+          --region=${{ env.REGION }}
 
-    - name: Wait for Managed Instance Group refresh
+    - name: Wait for Managed Instance Group update
       run: |
-        gcloud compute instance-groups managed wait-until-stable webapp-group-manager \
-          --region ${{ secrets.GCP_REGION }}
+        gcloud compute instance-groups managed wait-until-stable ${{ env.INSTANCE_GROUP_NAME }} \
+          --region=${{ env.REGION }}
