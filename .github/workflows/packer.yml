@@ -38,12 +38,19 @@ jobs:
         packer init .
         packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl
         
-    - name: Configure MIG to use new template
-      run: gcloud compute instance-groups managed set-instance-template INSTANCE_GROUP_NAME --template=INSTANCE_TEMPLATE_NAME
-        
-    - name: Re-create MIG instances
-      run: gcloud compute instance-groups managed recreate-instances INSTANCE_GROUP_NAME
-      
-    - name: Wait for instance refresh
+    - name: Create new Instance Template
       run: |
-        gcloud compute instance-groups managed wait-until --stable INSTANCE_GROUP_NAME
+        gcloud compute instance-templates create webapp-template-new \
+          --source-instance-template webapp-template-${var.environment} \
+          --region ${{ secrets.GCP_REGION }}
+
+    - name: Update Managed Instance Group
+      run: |
+        gcloud compute instance-groups managed rolling-action start-update webapp-group-manager \
+          --version template=webapp-template-new \
+          --region ${{ secrets.GCP_REGION }}
+
+    - name: Wait for Managed Instance Group refresh
+      run: |
+        gcloud compute instance-groups managed wait-until-stable webapp-group-manager \
+          --region ${{ secrets.GCP_REGION }}
