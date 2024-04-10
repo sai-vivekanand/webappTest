@@ -69,9 +69,9 @@ jobs:
       run: |
         cd packer
         packer init .
-        packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl ./packer | tee image_packer.txt
-        image_id = $(grep 'created image success' image_packer.txt | awk '{print $3}')
-        echo "::set-output name=image_id::image_id"
+        packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl > image_packer.txt
+        image_id=$(grep 'created image success' image_packer.txt | awk '{print $3}')
+        echo "::set-output name=image_id::$image_id"
         
       env:
         # NEW_IMAGE_NAME: webapp-image-${{ github.sha }}
