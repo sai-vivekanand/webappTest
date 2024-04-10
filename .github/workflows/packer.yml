@@ -86,9 +86,9 @@ jobs:
     - name: Create new Instance Template
       id: create_instance_template
       run: |
+          REGION= global
           NEW_INSTANCE_TEMPLATE_NAME="webapp-template-dev-${{ steps.create_timestamp.outputs.TIMESTAMP }}"
           OLD_INSTANCE_TEMPLATE_NAME=$(gcloud compute instance-templates list --sort-by=creationTimestamp --limit=1 --format="value(name)")
-          REGION=${{ env.REGION }}
           MACHINE_TYPE=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.machineType)")
           NETWORK=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.networkInterfaces.network)")
           SUBNET=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.networkInterfaces.subnetwork)")
