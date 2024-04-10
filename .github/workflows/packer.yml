@@ -86,21 +86,21 @@ jobs:
     - name: Create new Instance Template
       id: create_instance_template
       run: |
-          REGION= global
+          REGION= ${{ env.REGION }}
           NEW_INSTANCE_TEMPLATE_NAME="webapp-template-dev-${{ steps.create_timestamp.outputs.TIMESTAMP }}"
           OLD_INSTANCE_TEMPLATE_NAME=$(gcloud compute instance-templates list --sort-by=creationTimestamp --limit=1 --format="value(name)")
-          MACHINE_TYPE=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.machineType)")
-          NETWORK=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.networkInterfaces.network)")
-          SUBNET=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.networkInterfaces.subnetwork)")
+          MACHINE_TYPE=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --format="value(properties.machineType)")
+          NETWORK=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --format="value(properties.networkInterfaces.network)")
+          SUBNET=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --format="value(properties.networkInterfaces.subnetwork)")
           NEW_IMAGE_LINK=$(gcloud compute images describe ${{ steps.create_image_name.outputs.IMAGE_NAME }} --format="value(selfLink)")
-          BOOT_DISK_KMS_KEY=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.disks.diskEncryptionKey.kmsKeyName)")
-          BOOT_DISK_SIZE=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.disks.initializeParams.diskSizeGb)")
-          BOOT_DISK_TYPE=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.disks.initializeParams.diskType)")
-          LABELS=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.labels)")
-          TAGS=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.tags.items)")
-          METADATA=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.metadata.items.value)")
-          SERVICE_ACCOUNT=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.serviceAccounts.email)")
-          SCOPES=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --region=${REGION} --format="value(properties.serviceAccounts.scopes)")
+          BOOT_DISK_KMS_KEY=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --format="value(properties.disks.diskEncryptionKey.kmsKeyName)")
+          BOOT_DISK_SIZE=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --format="value(properties.disks.initializeParams.diskSizeGb)")
+          BOOT_DISK_TYPE=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --format="value(properties.disks.initializeParams.diskType)")
+          LABELS=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --format="value(properties.labels)")
+          TAGS=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --format="value(properties.tags.items)")
+          METADATA=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --format="value(properties.metadata.items.value)")
+          SERVICE_ACCOUNT=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --format="value(properties.serviceAccounts.email)")
+          SCOPES=$(gcloud compute instance-templates describe ${OLD_INSTANCE_TEMPLATE_NAME} --format="value(properties.serviceAccounts.scopes)")
           SCOPES=$(echo "$SCOPES" | sed "s/\[\|\]//g")
           SCOPES=$(echo "$SCOPES" | sed "s/ *', *'/,/g")
           SCOPES=$(echo "$SCOPES" | sed "s/^'//;s/'$//")
