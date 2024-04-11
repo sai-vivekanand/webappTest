@@ -74,43 +74,44 @@ jobs:
         else
           echo "Image build has failed or image ID wasn't found."
           exit 1
+        fi
 
     - name: Create new Instance Template
       id: create_instance_template
       run: |
           echo "Image created is: $IMAGE_NAME"
-          gcloud compute instance-templates create ${{secrets.NEW_TEMPLATE_NAME}} \
-          --project=${{env.PROJECT_ID}} \
-          --instance-template-region=${{env.REGION}} \          
-          --network=${{env.NETWORK}} \
-          --subnet=${{env.SUBNET}} \
+          gcloud compute instance-templates create ${{ secrets.NEW_TEMPLATE_NAME }} \
+          --project=${{ env.PROJECT_ID }} \
+          --instance-template-region=${{ env.REGION }} \          
+          --network=${{ env.NETWORK }} \
+          --subnet=${{ env.SUBNET }} \
           --boot-disk-type=pd-ssd \
           --boot-disk-size=100 \
           --boot-disk-auto-delete=true \
-          --tags=${{env.TAGS}} \
-          --region=${{env.REGION}} \
-          --machine-type=${{env.MACHINE_TYPE}} \
-          --image=projects/${{env.PROJECT_ID}}/global/images/$IMAGE_NAME \
+          --tags=${{ env.TAGS }} \
+          --region=${{ env.REGION }} \
+          --machine-type=${{ env.MACHINE_TYPE }} \
+          --image=projects/${{ env.PROJECT_ID }}/global/images/$IMAGE_NAME \
           --description='new template creation' \
-          --boot-disk-kms-key=${{secrets.KMS_KEY_SELF_LINK}} \
-          --metadata='startup-script= <<-EOF
+          --boot-disk-kms-key=${{ secrets.KMS_KEY_SELF_LINK }} \
+          --metadata='startup-script=<<-EOF
               #!/bin/bash
 
               set -e
 
-              DB_HOSTNAME=${{env.DB_HOSTNAME}}
-              DB_PASSWORD=${{env.DB_PASSWORD}}
+              DB_HOSTNAME=${{ env.DB_HOSTNAME }}
+              DB_PASSWORD=${{ env.DB_PASSWORD }}
 
               cat > /opt/.env <<EOF2
-              DB_HOSTNAME=${{env.DB_HOSTNAME}}
+              DB_HOSTNAME=${{ env.DB_HOSTNAME }}
               DB_USERNAME=webapp
-              DB_PASSWORD=${{env.DB_PASSWORD}}
+              DB_PASSWORD=${{ env.DB_PASSWORD }}
               EOF2
 
               touch /var/run/startup-script-completed
               EOF' \
-          --service-account=${{secrets.GCP_SERVICE_ACCOUNT_EMAIL}} \
-          --scopes=${{env.SCOPES}}
+          --service-account=${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }} \
+          --scopes=${{ env.SCOPES }}
           
       
           echo "Initialised New Instance Template Variables" 
@@ -118,13 +119,13 @@ jobs:
     - name: Update Managed Instance Group
       id: update_managed_instance_group
       run: |
-          gcloud compute instance-groups managed rolling-action start-update ${{env.INSTANCE_GROUP_NAME}} \
-          --version=template=https://compute.googleapis.com/compute/v1/projects/csye6225csye/global/instanceTemplates/${{secrets.NEW_TEMPLATE_NAME}} \
-          --region=${{env.REGION}}
+          gcloud compute instance-groups managed rolling-action start-update ${{ env.INSTANCE_GROUP_NAME }} \
+          --version=template=https://compute.googleapis.com/compute/v1/projects/csye6225csye/global/instanceTemplates/${{ secrets.NEW_TEMPLATE_NAME }} \
+          --region=${{ env.REGION }}
     - name: Wait for Managed Instance Group update
       id: wait_until_managed_instance_group_is_stable
       run: |
-          gcloud compute instance-groups managed wait-until ${{env.INSTANCE_GROUP_NAME}} \
+          gcloud compute instance-groups managed wait-until ${{ env.INSTANCE_GROUP_NAME }} \
           --version-target-reached \
-          --region=${{env.REGION}}
+          --region=${{ env.REGION }}
           echo "Managed Instance group is stable"
