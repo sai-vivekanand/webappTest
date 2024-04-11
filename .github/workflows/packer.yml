@@ -73,7 +73,7 @@ jobs:
         cd packer
         packer init .
         packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-b' cent.pkr.hcl | tee packer_build.log
-        image_name=$(grep -oP 'googlecompute: A disk image was created: \K(.*)' packer_build.log)
+        image_name=$(grep 'Image creation complete' packer_build.log | awk '{print $4}')
         echo "::set-output name=image_name::$image_name"
 
     - name: Create new Instance Template
