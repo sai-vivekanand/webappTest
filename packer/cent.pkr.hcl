@@ -42,7 +42,7 @@ locals {
 source "googlecompute" "centos_stream" {
   project_id          = var.project_id
   zone                = var.zone
-  machine_type        = "n1-standard-1"
+  machine_type        = "e2-medium"
   source_image_family = var.source_image_family
   ssh_username        = var.ssh_username
   image_name          = "gcp-${local.timestamp}"
