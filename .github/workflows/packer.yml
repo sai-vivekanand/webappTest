@@ -8,6 +8,8 @@ env:
   DB_HOSTNAME: ${{ secrets.DB_HOSTNAME }}
   DB_USERNAME: ${{ secrets.DB_USERNAME }}
   DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  KMS_KEY_SELF_LINK: ${{ secrets.KMS_KEY_SELF_LINK }}
+  GCP_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
   PROJECT_ID: csye6225csye
   INSTANCE_GROUP_NAME: webapp-group-manager
   REGION: us-east1
@@ -91,7 +93,7 @@ jobs:
           --machine-type=${{ env.MACHINE_TYPE }} \
           --image=projects/${{ env.PROJECT_ID }}/global/images/$IMAGE_NAME \
           --description="New template creation" \
-          --boot-disk-kms-key=${{ secrets.KMS_KEY_SELF_LINK }} \
+          --boot-disk-kms-key=${{ env.KMS_KEY_SELF_LINK }} \
           --metadata startup-script='#!/bin/bash
           set -e
           DB_HOSTNAME=${{ env.DB_HOSTNAME }}
@@ -103,7 +105,7 @@ jobs:
           EOF2
           touch /var/run/startup-script-completed
           ' \
-          --service-account=${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }} \
+          --service-account=${{ env.GCP_SERVICE_ACCOUNT_EMAIL }} \
           --scopes=${{ env.SCOPES }}
           echo "Initialised New Instance Template Variables" 
 
