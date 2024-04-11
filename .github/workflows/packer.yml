@@ -8,6 +8,7 @@ env:
   DB_HOSTNAME: ${{ secrets.DB_HOSTNAME }}
   DB_USERNAME: ${{ secrets.DB_USERNAME }}
   DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  NEW_TEMPLATE_NAME: ${{ secrets.NEW_TEMPLATE_NAME }}
   KMS_KEY_SELF_LINK: ${{ secrets.KMS_KEY_SELF_LINK }}
   GCP_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
   PROJECT_ID: csye6225csye
@@ -82,7 +83,7 @@ jobs:
       id: create_instance_template
       run: |
           echo "Image created is: $IMAGE_NAME"
-          gcloud compute instance-templates create ${{ secrets.NEW_TEMPLATE_NAME }} \
+          gcloud compute instance-templates create ${{ env.NEW_TEMPLATE_NAME }} \
           --project=${{ env.PROJECT_ID }} \
           --network=${{ env.NETWORK }} \
           --subnet=${{ env.SUBNET }} \
