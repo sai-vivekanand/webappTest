@@ -60,30 +60,25 @@ jobs:
         echo "Image Family Name: $IMAGE_FAMILY"
         echo "::set-output name=IMAGE_FAMILY::$IMAGE_FAMILY"
 
-    - name: Create Image Name
-      run: |
-        IMAGE_NAME="gcp-${GITHUB_SHA::8}-$(date +%s)"
-        echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
-
     - name: Build machine image with Packer
       id: image_build
       run: |
         cd packer
         packer init .
-        IMAGE_BUILD_OUTPUT=$(packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=csye6225csye' -var 'zone=us-east1-c' cent.pkr.hcl)
+        IMAGE_BUILD_OUTPUT=$(packer build -var 'artifact_path=${{ github.workspace }}/target/cloud-app-0.0.1-SNAPSHOT.jar' -var 'project_id=${{ env.PROJECT_ID }}' -var 'zone=${{ env.ZONE }}' cent.pkr.hcl)
         echo "$IMAGE_BUILD_OUTPUT"
         if echo "$IMAGE_BUILD_OUTPUT" | grep -q 'A disk image was created'; then
-          IMAGE_NAME=$(echo "$packer_output" | grep 'A disk image was created' | awk -F': ' '{print $NF}')
+          IMAGE_NAME=$(echo "$IMAGE_BUILD_OUTPUT" | grep 'A disk image was created' | awk -F': ' '{print $NF}')
           echo "Image Name: $IMAGE_NAME"
           echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
         else
-          echo "Image build has failed or image ID was'nt found."
+          echo "Image build has failed or image ID wasn't found."
           exit 1
 
     - name: Create new Instance Template
       id: create_instance_template
       run: |
-          echo "Image created is: ${{steps.image_build.outputs.IMAGE_NAME}}"
+          echo "Image created is: $IMAGE_NAME"
           gcloud compute instance-templates create ${{secrets.NEW_TEMPLATE_NAME}} \
           --project=${{env.PROJECT_ID}} \
           --instance-template-region=${{env.REGION}} \          
@@ -95,7 +90,7 @@ jobs:
           --tags=${{env.TAGS}} \
           --region=${{env.REGION}} \
           --machine-type=${{env.MACHINE_TYPE}} \
-          --image=projects/${{env.PROJECT_ID}}/global/images/${{steps.image_build.outputs.IMAGE_NAME}} \
+          --image=projects/${{env.PROJECT_ID}}/global/images/$IMAGE_NAME \
           --description='new template creation' \
           --boot-disk-kms-key=${{secrets.KMS_KEY_SELF_LINK}} \
           --metadata='startup-script= <<-EOF
