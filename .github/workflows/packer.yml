@@ -84,7 +84,6 @@ jobs:
       id: create_instance_template
       run: |
           echo "Image created is: ${{steps.image_build.outputs.IMAGE_NAME}}"
-          echo "Image created is: ${{steps.image_build.outputs.$IMAGE_NAME}}"
           gcloud compute instance-templates create ${{secrets.NEW_TEMPLATE_NAME}} \
           --project=${{env.PROJECT_ID}} \
           --instance-template-region=${{env.REGION}} \          
