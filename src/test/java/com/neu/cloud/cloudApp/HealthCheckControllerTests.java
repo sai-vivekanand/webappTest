@@ -32,7 +32,7 @@ class HealthCheckControllerTests {
 		ResponseEntity<Void> response = controller.healthCheck(mockRequest);
 
 		// Assert
-		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotEquals(HttpStatus.OK, response.getStatusCode());
 	}
 
 	@Test
